@@ -2,6 +2,11 @@ from numpy import *
 import operator
 import numpy as np
 import os
+import matplotlib
+import matplotlib.pyplot as plt
+import locale
+import codecs
+from os import listdir
 
 def createDataSet():
 		group = np.array([
@@ -44,3 +49,83 @@ def file2matrix(filename):
             classLabelVector.append(labels[listFromLine[-1]]) 
             index += 1
         return returnMat,classLabelVector
+
+def autoNorm(dataX):
+    #归一化公式 newVal=(oldVal-min)/(max-min)
+    minVals = dataX.min(axis=0)
+    maxVals = dataX.max(0)
+    ranges = maxVals - minVals
+    rows = dataX.shape[0]
+    newVal = dataX - tile(minVals,(rows,1)) #(oldVal-min)
+    ## tile(minVals,(row,1))复制row行,列数为minVals列数的一倍
+    newVal = newVal/tile(ranges,(rows,1))#(oldVal-min)/(max-min)
+    return newVal,ranges,minVals
+
+def datingClassTest():
+    hoRatio = 0.10#10% of data as test
+    #读入数据
+    filename = 'D:\ML\kNN\datingTestSet2.txt'
+    dataX,labels = file2matrix('D:\ML\kNN\datingTestSet2.txt')
+    #归一化
+    normMat,ranges,minVals = autoNorm(dataX)
+    m = dataX.shape[0]#number of rows
+    numTestVecs = int(m*hoRatio)#number of test
+    errorcount = 0;#initialize number of errors
+    for i in range(numTestVecs):
+        classifierResult = classify0(normMat[i,:],normMat[numTestVecs:m,:],labels[numTestVecs:m],5)
+        print("the classifier predicted %d, the real answer is :%d" %((classifierResult),labels[i]))
+        if(classifierResult != labels[i]):
+            errorcount+=1
+    print("error rate :%f" %((errorcount)/(numTestVecs)))
+
+def classifyPerson():
+    resultList = ["第一类","第二类","第三类"] #output lables
+    percentTats = float(input("玩游戏消耗的时间"))
+    ffilm = float(input("每年获得的飞行里程数"))
+    iceCream = float(input("每周消耗冰激凌"))
+    #读入数据
+    filename = 'D:\ML\kNN\datingTestSet2.txt'
+    dataX,labels = file2matrix('D:\ML\kNN\datingTestSet2.txt') 
+    #归一化
+    normMat,ranges,minVals = autoNorm(dataX)
+    test_list = np.array([percentTats,ffilm,iceCream])
+    classifierResult = classify0(test_list,dataX,labels,3)
+    print("你喜欢的类别是:"+resultList[classifierResult])
+
+def img2vector(filename):
+    returnVect = zeros((1,1024))
+    with open(r'D:\ML\kNN\digits\testDigits\test.txt','rt') as fr:#字符串前加r，表示的是禁止字符串转义
+        for i in range(32):
+            lineStr = fr.readline()
+            for j in range(32):
+                returnVect[0,32*i+j] = int(lineStr[j])
+    return returnVect
+
+def handwritingClassTest():
+    hwLabels = []
+    trainingFileList = listdir(r'D:\ML\kNN\digits\trainingDigits')
+    m = len(trainingFileList)
+    trainingMat = zeros((m,1024))
+    for i in range(m):
+        fileNameStr = trainingFileList[i]
+        fileStr = fileNameStr.split('.')[0]
+        classNumStr = int(fileStr.split('_')[0])
+        hwLabels.append(classNumStr)
+        trainingMat[i,:] = img2vector('trainingDigits/%s' % fileNameStr)
+    testFileList = listdir(r'D:\ML\kNN\digits\testDigits')
+    errorcount = 0.0
+    mTest = len(testFileList)
+    for i in range(mTest):
+        fileNameStr = testFileList[i]
+        fileStr = fileNameStr.split('.')[0]
+        classNumStr = fileStr.split('_')[0]
+        vectorUnderTest = img2vector('testDigits/%s' % fileNameStr)
+        classifierResult = classify0(vectorUnderTest,trainingMat,hwLabels,3)
+        #print("the classifier came back with %d, the real answer is %d" %(classifierResult,classNumStr))
+        if(classifierResult != classNumStr):
+            errorcount+=1.0
+    print("\nthe total number of errors is %d" %errorcount)
+    print("\nthe total error rate is %f" %float((errorcount/mTest)))
+            
+
+        
