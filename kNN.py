@@ -94,7 +94,7 @@ def classifyPerson():
 
 def img2vector(filename):
     returnVect = zeros((1,1024))
-    with open(r'D:\ML\kNN\digits\testDigits\test.txt','rt') as fr:#字符串前加r，表示的是禁止字符串转义
+    with open(r'D:\ML\kNN\digits\testDigits\0_13.txt','rt') as fr:#字符串前加r，表示的是禁止字符串转义
         for i in range(32):
             lineStr = fr.readline()
             for j in range(32):
@@ -109,7 +109,7 @@ def handwritingClassTest():
     for i in range(m):
         fileNameStr = trainingFileList[i]
         fileStr = fileNameStr.split('.')[0]
-        classNumStr = int(fileStr.split('_')[0])
+        classNumStr = (fileStr.split('_')[0])
         hwLabels.append(classNumStr)
         trainingMat[i,:] = img2vector('trainingDigits/%s' % fileNameStr)
     testFileList = listdir(r'D:\ML\kNN\digits\testDigits')
